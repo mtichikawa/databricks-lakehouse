@@ -4,6 +4,8 @@ bronze.py — BronzeIngester: raw Parquet → bronze Delta table.
 Design:
 - Append-only: never modify or delete source records.
 - Idempotent: skip files already tracked in the _source_file column.
+#   Re-running ingest_all on the same raw directory is safe — already-seen
+#   files are detected via a set lookup against existing _source_file values.
 - Adds metadata columns: _source_file, _ingested_at, _batch_id.
 - Preserves original schema exactly — no type casting, no renaming.
 """
