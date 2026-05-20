@@ -34,7 +34,7 @@ logger = get_logger(__name__)
 @dataclass
 class QualityResult:
     check_name: str
-    status: str          # "pass" | "warn" | "fail"
+    status: str          # "pass" (continue) | "warn" (log + continue) | "fail" (halt pipeline)
     metric_value: Any    # the raw computed metric (float, int, bool …)
     message: str         # human-readable description
 
