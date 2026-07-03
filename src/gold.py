@@ -1,10 +1,13 @@
 """
 gold.py — GoldAggregator: silver → gold aggregate tables.
 
-Three gold tables:
-- gold_daily_stats:   one row per (date, pickup_zone)
-- gold_hourly_demand: one row per (date, hour, pickup_zone)
+Three gold tables, each at a different analytical grain:
+- gold_daily_stats:   one row per (date, pickup_zone) — daily KPIs
+- gold_hourly_demand: one row per (date, hour, pickup_zone) — heatmap data
 - gold_payment_mix:   one row per (date, payment_type) with pct_of_daily_trips
+
+Granularity is intentionally coarse — gold tables serve dashboards and
+reports, not ad-hoc queries. Finer analysis uses silver directly.
 """
 
 from pathlib import Path
