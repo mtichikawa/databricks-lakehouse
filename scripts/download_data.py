@@ -8,8 +8,8 @@ Run from project root:
     python scripts/download_data.py
 """
 
-import sys
 from pathlib import Path
+import sys
 
 import requests
 
