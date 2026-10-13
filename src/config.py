@@ -2,7 +2,8 @@
 config.py — Central configuration for the Databricks Lakehouse project.
 
 All paths, table names, quality thresholds, and schema definitions live here.
-Change DELTA_DIR to point at a DBFS path when running on Databricks Community Edition.
+Change DELTA_DIR to point at workspace storage (a Unity Catalog volume path, for
+example) when running in a Databricks workspace.
 """
 
 from pathlib import Path
