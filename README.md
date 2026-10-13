@@ -1,12 +1,12 @@
 # Databricks Medallion Lakehouse
 
-A portfolio data engineering project demonstrating medallion architecture (Bronze → Silver → Gold) with Delta Lake, built to run locally via the `deltalake` Python library and deployable to Databricks Community Edition.
+A portfolio data engineering project demonstrating medallion architecture (Bronze → Silver → Gold) with Delta Lake, built to run locally via the `deltalake` Python library. See below for notes on running it in a Databricks workspace.
 
 ## Dataset
 
 NYC Taxi & Limousine Commission (TLC) yellow taxi trip records. 3 months of 2023 data (~10M rows). Freely available at https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page.
 
-Rich schema (timestamps, locations, fares, tips, payment types) with real-world data quality issues — nulls, zero fares, impossible distances — ideal for demonstrating a production-grade data quality pipeline.
+Rich schema (timestamps, locations, fares, tips, payment types) with real-world data quality issues — nulls, zero fares, impossible distances — useful for demonstrating a data quality pipeline.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ Raw Parquet (data/raw/)
 ## Quick Start (local, no Databricks needed)
 
 ```bash
-git clone <repo>
+git clone https://github.com/mtichikawa/databricks-lakehouse.git
 cd databricks-lakehouse
 
 python3 -m venv venv && source venv/bin/activate
@@ -64,7 +64,7 @@ python scripts/download_data.py
 pytest tests/ -v
 ```
 
-All 40+ tests run without Spark, without downloads, and without external API calls.
+The tests run without Spark, without downloads, and without external API calls.
 
 ## Project Structure
 
@@ -79,10 +79,10 @@ src/
   pipeline.py       — LakehousePipeline: end-to-end orchestration
   utils.py          — Delta table helpers, logging, date utilities
 
-tests/              — 40+ tests, no Spark required
+tests/              — no Spark required
 data/sample/        — Committed 300-row synthetic sample (runs immediately after clone)
 data/schemas/       — Schema snapshots (JSON) written at runtime
-notebooks/          — Databricks Community Edition exploration notebook
+notebooks/          — Exploration notebook
 scripts/
   create_sample.py  — Generate synthetic sample data
   download_data.py  — Download full 3-month TLC dataset
@@ -107,20 +107,19 @@ The `QualityCheck` and `QualityRunner` classes are reusable — not ad-hoc asser
 `SchemaEvolutionTracker` compares each layer's schema against the previous run's JSON snapshot. Detected changes (added, removed, type-changed columns) are:
 - Logged to `data/schemas/schema_evolution_log.jsonl`
 - Printed as warnings — does not halt the pipeline
-- Reviewed by a human before promotion
 
 This mirrors production Databricks workflows where upstream schemas evolve.
 
-## Running on Databricks Community Edition
+## Running in a Databricks Workspace
 
-1. Upload `data/raw/` Parquet files to DBFS (`/FileStore/`)
+1. Upload the `data/raw/` Parquet files to workspace storage (a Unity Catalog volume on current workspaces)
 2. Import `notebooks/exploration.ipynb`
-3. Update `DELTA_DIR` in `src/config.py` to point at a DBFS path
-4. Delta Lake is built into Databricks — no extra setup needed
+3. Update `DELTA_DIR` in `src/config.py` to point at that storage path
+4. The code uses the `deltalake` Python library, not Spark, so install `requirements.txt` in the notebook environment
 
 ## Key Design Decisions
 
-- **deltalake (not Spark) for local dev**: All tests and demos run on a laptop without Spark installed. Same logic runs on Databricks via PySpark Delta.
+- **deltalake (not Spark) for local dev**: All tests and demos run on a laptop without Spark installed.
 - **Quarantine over silent drops**: Invalid rows are never deleted — they go to `silver_trips_quarantine` with a `_quarantine_reason` column. Row count invariant holds: `bronze == silver + quarantine`.
 - **Three gold tables over one wide table**: Each serves a specific analytical purpose (daily dashboards, demand heatmaps, payment trends).
 - **Schema evolution warnings, not errors**: Real pipelines encounter upstream schema drift. Tracking it without blocking lets the pipeline continue while flagging changes for human review.
